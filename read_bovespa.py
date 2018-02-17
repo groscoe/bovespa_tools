@@ -8,7 +8,7 @@ import pandas as pd
 from collections import OrderedDict
 from datetime import date
 from datetime import datetime as dt
-from typing import Callable, Iterator, Union, Dict
+from typing import Any, Callable, Iterator, Union, Dict
 
 
 RecordTypes = Union[int, str, float, date]
@@ -20,16 +20,12 @@ BovespaDateString = str
 def read_bovespa_file(filename: FilePath) -> pd.DataFrame:
     '''read a file in the BOVESPA historical records format as a
     Pandas' DataFrame.'''
-    records = []
     with open(filename, 'r') as bovespa_file:
         bovespa_file.readline()  # skip file header
-        for line in bovespa_file:
-            try:
-                records.append(read_bovespa_record(line))
-            except ValueError:  # skip file footer
-                break
+        records = (read_bovespa_record(line)
+                   for line in skip_last(bovespa_file))
 
-    return pd.DataFrame(records)
+        return pd.DataFrame(records)
 
 
 def read_bovespa_record(line: str) -> Dict[str, RecordTypes]:
@@ -87,3 +83,14 @@ def read_float(value: str, after_comma: int = 2) -> float:
     fractional_part = value[-after_comma:]
 
     return float(f'{integral_part}.{fractional_part}')
+
+
+def skip_last(iterator: Iterator[Any]) -> Iterator[Any]:
+    '''Yield all but the last value of an iterator.'''
+    try:
+        next_value = next(iterator)
+        for element in iterator:
+            yield next_value
+            next_value = element
+    except StopIteration:
+        raise ValueError("Iterator is empty")
