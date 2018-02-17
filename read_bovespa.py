@@ -2,7 +2,7 @@
 read_bovespa.py - helper functions to interpret records from
 BOVESPA's historical data.
 
-obs: data available in http://http://www.bmfbovespa.com.br
+Raw data available in http://http://www.bmfbovespa.com.br
 '''
 import pandas as pd
 from collections import OrderedDict
